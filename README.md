@@ -1,8 +1,57 @@
 # AncestryJoins
+This gem provides additional ActiveRecord scopes to fetch ancestry records in
+bulk.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ancestry_joins`. To experiment with that code, run `bin/console` for an interactive prompt.
+## Problem
+The ancestry gem only provides instance scopes which when used in
+iteration causes N+1 query performance issues.
+For example:
 
-TODO: Delete this and the text above, and describe your gem
+```ruby
+# if we have 100 interesting items, this will run 1 + 100 querys!
+Item.where(interesting: true).flat_map{|i| i.ancestors}
+```
+
+## Solution
+
+Using this gem will fetch identical results to the `flat_map` but in a single
+query.
+
+```ruby
+Item.where(interesting: true).with_ancestors_only
+```
+
+## Caveats
+
+Do to the querying method, only Postgres is supported at the moment.
+More databases can be supported in the future. Look at `lib/ancestry_joins.rb` 
+to implement scopes for another database.
+
+## Usage
+
+**IMPORTANT** Use the scope *last* in the chain for good performance, otherwise
+the ancestry grouping act on the entire table before applying the filter.
+If you have other models to join against the ancestry, those maybe added after
+including the ancestry joins.
+
+```ruby
+class Item < ActiveRecord::Base
+  has_ancestry
+  include AncestryJoins
+
+  has_many :widgets
+end
+
+# Get list of Items with red color, their parents regardless of color, and the
+# red items or red items ancestors' parents widgets are blue.
+Item
+  .where(color: 'red')
+  .with_ancestors
+  .joins(:widgets)
+  .merge(Widget.where(color: 'blue'))
+```
+
+Look to the specs for more details.
 
 ## Installation
 
@@ -20,10 +69,6 @@ Or install it yourself as:
 
     $ gem install ancestry_joins
 
-## Usage
-
-TODO: Write usage instructions here
-
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
@@ -32,7 +77,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ancestry_joins.
+Bug reports and pull requests are welcome on GitHub at https://github.com/ddrscott/ancestry_joins.
 
 
 ## License

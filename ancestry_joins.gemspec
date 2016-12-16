@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Scott Pierce']
   spec.email         = ['scott.pierce@centro.net']
 
-  spec.summary       = 'adds scopes to join ancestry records'
+  spec.summary       = 'Provides scopes to join ancestry records in bulk.'
   spec.homepage      = "https://github.com/ddrscott/ancestry_joins"
   spec.license       = 'MIT'
 

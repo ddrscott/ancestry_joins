@@ -8,7 +8,10 @@ module AncestryJoins
   extend ActiveSupport::Concern
 
   included do
-    case connection.adapter_name.downcase.to_sym
+    rails_env = ENV['RAILS_ENV'] || (Rails.env if defined?(Rails))
+    raise 'Could not detect Rails env' unless rails_env
+
+    case configurations[rails_env]['adapter'].downcase.to_sym
     when :postgresql
       # Helper to add all selection fields. This is the default behavior until
       # you add your own selections.
